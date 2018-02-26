@@ -1,5 +1,26 @@
 /* javascript.js */
 
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
+let array = [], tileSize = 50, canvasWidth = 400, canvasHeight = 400;
+// let canvasWidth = document.getElementById('canvas.width');
+// let canvasHeight = document.getElementById('canvas.height');
+
+// Define the tile images
+let floor = new Image();
+let wall = new Image();
+
+wall.src = 'img/map/stakes-fence.png';
+floor.src = 'img/map/brick-wall.png';
+
+// Initilise the boardArray ()
+let boardArray = [];
+let itemArray = [];
+
+// Initialise layout start position - TRH corner for boardArray
+let posX = 0, posY = 0;
+const rows = 8, cols = 8;
+
 // Random number generator - generate random number lower to upper inclusive.
 function randomNumber(min, max) {
   // Basic parameter validation
@@ -7,38 +28,55 @@ function randomNumber(min, max) {
   else if ( min === max ) { return min; }
 
   min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  max = ~~(max);
+  return ~~(Math.random() * (max - min + 1)) + min;
 };
 
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
-
-// Define the tile images
-var grass = new Image();
-var sand = new Image();
-
-grass.src = 'grassTile.jpg';
-sand.src = 'sandTile.png';
-
-// Initilise the boardArray ()
-var boardArray = [];
-
-// Initialise layout start position - TRH corner for boardArray
-let posX = 0;
-let posY = 0;
-
-for (var i=0; i<8; i++) {
-  // Initialise inner array
-  boardArray[i] = [];
-  for (var j=0; j<8; j++) {
-    boardArray[i][j] = randomNumber(0, 1);
-
-    if (boardArray[i][j] === 0) { ctx.drawImage(grass, posX, posY, 50, 50); }
-    if (boardArray[i][j] === 1) { ctx.drawImage(sand, posX, posY, 50, 50); }
-    posX += 50;
-  }
+function initBoard() {
+  // Draw a board full of floor tiles
+  for (let i=0; i<rows; i++) {
+    // Initialise inner array
+    boardArray[i] = [];
+    for (let j=0; j<cols; j++) {
+      ctx.drawImage(floor, posX, posY, 50, 50);
+      posX += 50;
+    }
     posX = 0;
     posY += 50;
+  }
 }
-console.table(boardArray);
+
+function placeItems(array, n, icon) {
+  // Set function variables
+  let placed = 0, maxAttempts = n * 5;
+
+  while(placed < n && maxAttempts > 0) {
+    let x = ~~((Math.round(~~(Math.random()*canvasWidth) / tileSize)) * tileSize),
+        y = ~~((Math.round(~~(Math.random()*canvasHeight) / tileSize)) * tileSize),
+        available = true;
+
+    for(let point in array) {
+      if(Math.abs(point.x-x) < tileSize && Math.abs(point.y-y) < tileSize) {
+        available = false;
+        break;
+      }
+    }
+
+    if(available) {
+      array.push({ x: x, y: y });
+      placed += 1;
+    }
+    maxAttempts -= 1;
+  }
+  for ( let i=0; i<array.length; i++ ) {
+    ctx.drawImage(icon, (array[i].x), (array[i].y), tileSize, tileSize);
+  }
+}
+
+// Program starts here
+initBoard();
+
+// The following will generate a maximum of numItems - it might well be less!
+let numItems = 20;
+itemArray = [];
+placeItems(itemArray, numItems, wall);
